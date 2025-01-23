@@ -1,0 +1,6 @@
+pymupdf
+dotenv
+openai
+tiktoken
+pinecone
+langchain
