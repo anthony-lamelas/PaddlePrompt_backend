@@ -138,20 +138,26 @@ class PineconeRetriever:
 
 if __name__ == '__main__':
 
-    loader = PDFLoader("List_of_countries_by_air_pollution.pdf")
-    text = loader.extract_text()
-    # print(text)
-
+    folder_path = "./pdfs"
     generator = EmbeddingGenerator()
-    chunks, embeddings = generator.process_text(text, chunk_size=800)
-
     vector_store = PineconeStore()
-    vector_store.save_vectors(embeddings, {"id": "doc_1", "source": "example.pdf"}, chunks)
+
+    for file in os.listdir(folder_path):
+        if file.endswith(".pdf"):
+            pdf_path = os.path.join(folder_path, file)
+            print(f"Processing: {file}")
+
+            loader = PDFLoader(pdf_path)
+            text = loader.extract_text()
+
+            chunks, embeddings = generator.process_text(text, chunk_size=800)
+            metadata = {"id": file.split(".")[0], "source": file}
+            vector_store.save_vectors(embeddings, metadata, chunks)
     
     pinecone_api_key = os.getenv("PINECONE_API_KEY")
     openai_api_key = os.getenv("OPENAI_API_KEY")
 
     retriever = PineconeRetriever(pinecone_api_key=pinecone_api_key, openai_api_key=openai_api_key)
     user_input = input("Message AirScopeAI: ")
-    result = retriever.query(user_input)
+    result = retriever.query(f"{user_input} || Make the response a maximum of 4 sentences.")
     print(result)
