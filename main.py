@@ -1,6 +1,28 @@
+# %% [markdown]
+# # Pip Installs
 
+# %%
+# pip install tiktoken
 
+# %%
+# pip install pinecone
 
+# %%
+# pip install pymupdf
+
+# %%
+# pip install langchain_pinecone
+
+# %%
+# pip install langchain_openai
+
+# %%
+# pip install pytesseract pdf2image
+
+# %% [markdown]
+# # Code
+
+# %%
 import fitz
 import os
 import tiktoken
@@ -13,8 +35,10 @@ from langchain_pinecone import PineconeVectorStore
 from langchain_openai import OpenAIEmbeddings, OpenAI
 from langchain.chains import RetrievalQA
 
+# %% [markdown]
+# ## Testing pdf loader
 
-
+# %%
 class PDFLoader:
     def __init__(self, pdf_path):
         self.pdf_path = pdf_path
@@ -28,12 +52,12 @@ class PDFLoader:
         return text
     
 # if __name__ == '__main__':
-#     loader = PDFLoader("List_of_countries_by_air_pollution.pdf")
+#     loader = PDFLoader("pdfs/India-AQLI.pdf")
 #     text = loader.extract_text()
 #     print(text)
     
 
-
+# %%
 load_dotenv()
 
 class EmbeddingGenerator:
@@ -71,7 +95,7 @@ class EmbeddingGenerator:
 #     generator = EmbeddingGenerator()
 #     chunks, embeddings = generator.process_text(text, chunk_size=800)
 
-
+# %%
 class PineconeStore:
 
     def __init__(self, environmeent="us-east-1"):
@@ -81,7 +105,7 @@ class PineconeStore:
         
         # pinecone instance
         self.pc = Pinecone(ap_key=pinecone_api_key)
-        self.index_name = "pdf-vector-store-pollution"
+        self.index_name = "text-analyzer"
 
         if self.index_name not in self.pc.list_indexes().names():
             self.pc.create_index(
@@ -106,17 +130,22 @@ class PineconeStore:
 
             index.upsert(vectors=[(vector_id, vector, chunk_metadata)])
 
+    def delete(self):
+        index = self.pc.Index(self.index_name)
+        index.delete(delete_all=True)
+
 # if __name__ == "__main__":
 #     vector_store = PineconeStore()
 #     vector_store.save_vectors(embeddings, {"id": "doc_1", "source": "example.pdf"}, chunks)
 
 
+# %%
 class PineconeRetriever:
     def __init__(self, pinecone_api_key, openai_api_key):
 
         # pinecone connection
         self.pc = Pinecone(api_key=pinecone_api_key)
-        self.index_name = "pdf-vector-store-pollution"
+        self.index_name = "text-analyzer"
         self.index = self.pc.Index(self.index_name)
 
         # openAi model and embeddings
@@ -136,6 +165,7 @@ class PineconeRetriever:
         return response['result']
 
 
+# %%
 if __name__ == '__main__':
 
     folder_path = "./pdfs"
@@ -153,11 +183,18 @@ if __name__ == '__main__':
             chunks, embeddings = generator.process_text(text, chunk_size=800)
             metadata = {"id": file.split(".")[0], "source": file}
             vector_store.save_vectors(embeddings, metadata, chunks)
-    
+
     pinecone_api_key = os.getenv("PINECONE_API_KEY")
     openai_api_key = os.getenv("OPENAI_API_KEY")
 
     retriever = PineconeRetriever(pinecone_api_key=pinecone_api_key, openai_api_key=openai_api_key)
-    user_input = input("Message AirScopeAI: ")
-    result = retriever.query(f"{user_input} || Make the response a maximum of 4 sentences.")
+
+    query = "You are a genius. Tell me if my submitted report conflicts with anything described in the attached RFI Summary Report. If so, please provide a detailed explanation of the conflict. When examining the submitted csv, ignore the pages with no text."
+
+    result = retriever.query(query)
     print(result)
+
+# %%
+# vector_store.delete()
+
+
