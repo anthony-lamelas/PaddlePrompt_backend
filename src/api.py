@@ -12,8 +12,21 @@ load_dotenv()
 # Create Flask app
 app = Flask(__name__)
 
-# Enable CORS for all domains on all routes (adjust as needed for production)
-CORS(app)
+# Configure CORS based on environment
+if os.environ.get('FLASK_ENV') == 'production':
+    # Production: Only allow your domain (you'll update this when you get your domain)
+    CORS(app, origins=[
+        "https://your-domain.com",  # Replace with your actual domain
+        "https://www.your-domain.com"  # Include www version if needed
+    ])
+else:
+    # Development: Allow localhost on common ports
+    CORS(app, origins=[
+        "http://localhost:8080",  # Your Vite dev server
+        "http://localhost:3000",  # Common React dev port
+        "http://127.0.0.1:8080",
+        "http://127.0.0.1:3000"
+    ])
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -27,15 +40,16 @@ def query_endpoint():
     
     Expected JSON format:
     {
-        "question": "Your question here"
+        "question": "Your question here (max 500 words)"
     }
     
     Returns:
     {
-        "question": "Your question here",
         "answer": "The generated answer",
         "status": "success"
     }
+    
+    Error responses include word count if question exceeds limit.
     """
     try:
         # Check if request contains JSON
@@ -63,12 +77,20 @@ def query_endpoint():
                 "status": "error"
             }), 400
         
+        # Validate question length (practical limit of 500 words)
+        MAX_WORDS = 500
+        word_count = len(question.split())
+        if word_count > MAX_WORDS:
+            return jsonify({
+                "error": f"Question too long. Maximum length is {MAX_WORDS} words. Current word count: {word_count}",
+                "status": "error"
+            }), 400
+        
         # Query the documents
         answer = query_documents(question)
         
         # Return successful response
         return jsonify({
-            "question": question,
             "answer": answer,
             "status": "success"
         })

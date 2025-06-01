@@ -27,7 +27,11 @@ def setup_qa_chain():
 
     # Set up OpenAI components
     embedding_model = OpenAIEmbeddings(api_key=SecretStr(openai_api_key))
-    llm = ChatOpenAI(temperature=0, api_key=SecretStr(openai_api_key))
+    llm = ChatOpenAI(
+        temperature=0, 
+        api_key=SecretStr(openai_api_key),
+        model="gpt-3.5-turbo"  # Faster and cheaper than GPT-4
+    )
 
     # Create vector store and retriever
     vector_store = PineconeVectorStore(
@@ -39,13 +43,13 @@ def setup_qa_chain():
 
     # Create system prompt
     system_prompt = (
-        "You are an AI assistant that answers questions based only on the provided context from documents. "
-        "Use the given context to answer the question accurately. "
-        "If the context contains relevant information, provide a detailed answer. "
-        "If the context doesn't contain relevant information to answer the question, "
-        "respond with: 'This question is not relevant. "
-        "Please ask questions related to the document content.' "
-        "Context: {context}"
+        "**You are an AI assistant that answers questions based only on the provided context from documents. **"
+        "**Use the given context to answer the question accurately and do not hallucinate. **"
+        "**If the context contains relevant information, provide a detailed answer. **"
+        "**If the context doesn't contain relevant information to answer the question, **"
+        "**respond with: 'This question is not relevant. **"
+        "**Please ask questions related to the document content.' **"
+        "**Context: {context}**"
     )
     
     prompt = ChatPromptTemplate.from_messages([
