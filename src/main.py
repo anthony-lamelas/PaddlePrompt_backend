@@ -8,7 +8,7 @@ def main():
     load_dotenv()
     
     # Example query
-    question = "What are the main requirements for the concrete mix design?"
+    question = "What is the best basketball player in the world?"
     answer = query_documents(question)
     
     print("\nQuestion:", question)

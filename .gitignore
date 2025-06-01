@@ -75,3 +75,5 @@ Thumbs.db
 RAW_DATA.jsonl
 CLEAN_DATA.jsonl
 *.pdf
+
+__pycache__/

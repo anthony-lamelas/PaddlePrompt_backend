@@ -21,6 +21,8 @@ torchvision = "*"
 torchaudio = "*"
 fitz = "*"
 pymupdf = "*"
+flask = "*"
+flask-cors = "*"
 
 [dev-packages]
 

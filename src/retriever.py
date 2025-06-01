@@ -13,7 +13,7 @@ class PineconeRetriever:
         self.index = self.pc.Index(self.index_name)
 
         # openAi model and embeddings
-        self.embedding_model = OpenAIEmbeddings(openai_api_key=openai_api_key)
+        self.embedding_model = OpenAIEmbeddings(api_key=openai_api_key)
         self.llm = OpenAI(temperature=0, api_key=openai_api_key)
 
         # create the Pinecone vector store

@@ -39,9 +39,12 @@ def setup_qa_chain():
 
     # Create system prompt
     system_prompt = (
-        "Use the given context to answer the question. "
-        "If you don't know the answer, say you don't know. "
-        "Use three sentence maximum and keep the answer concise. "
+        "You are an AI assistant that answers questions based only on the provided context from documents. "
+        "Use the given context to answer the question accurately. "
+        "If the context contains relevant information, provide a detailed answer. "
+        "If the context doesn't contain relevant information to answer the question, "
+        "respond with: 'This question is not relevant. "
+        "Please ask questions related to the document content.' "
         "Context: {context}"
     )
     
@@ -60,6 +63,10 @@ def query_documents(question: str) -> str:
     """Query the vector database with a question."""
     qa_chain = setup_qa_chain()
     response = qa_chain.invoke({"input": question})
+
+    # If the answer is empty, return a message saying the question is not relevant
+    if len(response['answer']) == 0:
+        return "This question is not relevant. Please ask relevant questions."
     return response['answer']
 
 if __name__ == "__main__":
