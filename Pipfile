@@ -1,0 +1,28 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+tiktoken = "*"
+pinecone-client = "*"
+pymupdf = "*"
+langchain-pinecone = "*"
+langchain-openai = "*"
+pytesseract = "*"
+pdf2image = "*"
+python-dotenv = "*"
+openai = "*"
+langchain = "*"
+tqdm = "*"
+transformers = "*"
+torch = "*"
+torchvision = "*"
+torchaudio = "*"
+fitz = "*"
+pymupdf = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9" 

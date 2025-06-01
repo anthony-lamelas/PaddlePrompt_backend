@@ -1,1 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
 .env
+.venv
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.vs/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Data and Models (customize based on your needs)
+data/raw/*
+data/processed/*
+data/pdfs/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/pdfs/.gitkeep
+model/
+*.model
+*.pkl
+*.h5
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment variables and secrets
+.env
+*.env
+.env.*
+!.env.example
+
+# Project specific
+RAW_DATA.jsonl
+CLEAN_DATA.jsonl
+*.pdf
