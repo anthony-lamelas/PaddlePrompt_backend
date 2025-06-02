@@ -20,7 +20,7 @@ coverage.xml
 .hypothesis
 
 # Virtual environments
-# .env  <-- COMMENTED OUT so Docker can copy .env file
+.env  # Exclude .env for production security
 .venv
 env/
 venv/

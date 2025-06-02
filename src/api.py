@@ -14,10 +14,9 @@ app = Flask(__name__)
 
 # Configure CORS based on environment
 if os.environ.get('FLASK_ENV') == 'production':
-    # Production: Only allow your domain (you'll update this when you get your domain)
+    # Production: Allow your Render domains
     CORS(app, origins=[
-        "https://your-domain.com",  # Replace with your actual domain
-        "https://www.your-domain.com"  # Include www version if needed
+        "https://paddleprompt-frontend.onrender.com",  # Your actual frontend URL
     ])
 else:
     # Development: Allow all origins for Docker testing
