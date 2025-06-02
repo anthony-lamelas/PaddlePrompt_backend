@@ -20,13 +20,21 @@ if os.environ.get('FLASK_ENV') == 'production':
         "https://www.your-domain.com"  # Include www version if needed
     ])
 else:
-    # Development: Allow localhost on common ports
-    CORS(app, origins=[
-        "http://localhost:8080",  # Your Vite dev server
-        "http://localhost:3000",  # Common React dev port
-        "http://127.0.0.1:8080",
-        "http://127.0.0.1:3000"
-    ])
+    # Development: Allow all origins for Docker testing
+    CORS(app, 
+         origins="*",  # Allow all origins
+         methods=['GET', 'POST', 'OPTIONS'],  # Allow these methods
+         allow_headers=['Content-Type', 'Authorization'],  # Allow these headers
+         supports_credentials=True)  # Support credentials if needed
+
+# Manual CORS handler for development
+@app.after_request
+def after_request(response):
+    if os.environ.get('FLASK_ENV') != 'production':
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 @app.route('/health', methods=['GET'])
 def health_check():
