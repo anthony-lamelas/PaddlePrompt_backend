@@ -4,13 +4,16 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from query import query_documents
+from query import query_documents_with_history
 
 # Load environment variables
 load_dotenv()
 
 # Create Flask app
 app = Flask(__name__)
+
+# In-memory session storage (in production, use Redis or database)
+conversation_sessions = {}
 
 # Configure CORS based on environment
 if os.environ.get('FLASK_ENV') == 'production':
@@ -43,11 +46,17 @@ def health_check():
 @app.route('/query', methods=['POST'])
 def query_endpoint():
     """
-    Query endpoint that accepts JSON with question and returns JSON with answer.
+    Query endpoint that accepts JSON with question and conversation history.
     
     Expected JSON format:
     {
-        "question": "Your question here (max 500 words)"
+        "question": "Your question here (max 500 words)",
+        "session_id": "unique_session_identifier",
+        "conversation_history": [
+            {"role": "user", "content": "previous question"},
+            {"role": "assistant", "content": "previous answer"},
+            {"role": "user", "content": "current question"}
+        ]
     }
     
     Returns:
@@ -76,6 +85,8 @@ def query_endpoint():
             }), 400
         
         question = data['question'].strip()
+        session_id = data.get('session_id', 'default')
+        conversation_history = data.get('conversation_history', [])
         
         # Validate that question is not empty
         if not question:
@@ -93,8 +104,21 @@ def query_endpoint():
                 "status": "error"
             }), 400
         
-        # Query the documents
-        answer = query_documents(question)
+        # Update session history
+        if session_id not in conversation_sessions:
+            conversation_sessions[session_id] = []
+        
+        # Store the conversation history (limit to last 10 exchanges to prevent context overflow)
+        conversation_sessions[session_id] = conversation_history[-10:]  # Last 10 messages (5 exchanges)
+        
+        # Query the documents with conversation context
+        answer = query_documents_with_history(question, conversation_sessions[session_id])
+        
+        # Add the new Q&A to session history
+        conversation_sessions[session_id].extend([
+            {"role": "user", "content": question},
+            {"role": "assistant", "content": answer}
+        ])
         
         # Return successful response
         return jsonify({
@@ -119,6 +143,80 @@ def query_get_info():
         },
         "endpoint": "/query",
         "method": "POST"
+    })
+
+@app.route('/clear-session', methods=['POST'])
+def clear_session():
+    """
+    Clear a specific session or clean up old sessions.
+    
+    Expected JSON format:
+    {
+        "session_id": "session_to_clear"  // Optional: if not provided, clears old sessions
+    }
+    
+    Returns:
+    {
+        "message": "Session cleared successfully",
+        "status": "success"
+    }
+    """
+    try:
+        data = request.get_json() if request.is_json else {}
+        session_id = data.get('session_id')
+        
+        if session_id:
+            # Clear specific session
+            if session_id in conversation_sessions:
+                del conversation_sessions[session_id]
+                return jsonify({
+                    "message": f"Session {session_id} cleared successfully",
+                    "status": "success"
+                })
+            else:
+                return jsonify({
+                    "message": "Session not found",
+                    "status": "success"  # Not an error, session might have expired
+                })
+        else:
+            # Clean up old sessions (keep only recent ones)
+            import time
+            current_time = time.time()
+            sessions_to_remove = []
+            
+            # Remove sessions older than 24 hours (86400 seconds)
+            # This is a simple cleanup - in production you'd store timestamps
+            if len(conversation_sessions) > 100:  # Only cleanup if we have many sessions
+                # Keep only the 50 most recent sessions
+                session_items = list(conversation_sessions.items())
+                sessions_to_keep = session_items[-50:]
+                conversation_sessions.clear()
+                conversation_sessions.update(sessions_to_keep)
+                
+                removed_count = len(session_items) - 50
+                return jsonify({
+                    "message": f"Cleaned up {removed_count} old sessions",
+                    "status": "success"
+                })
+            
+            return jsonify({
+                "message": "No cleanup needed",
+                "status": "success"
+            })
+            
+    except Exception as e:
+        return jsonify({
+            "error": f"Internal server error: {str(e)}",
+            "status": "error"
+        }), 500
+
+@app.route('/sessions-info', methods=['GET'])
+def sessions_info():
+    """Get information about active sessions."""
+    return jsonify({
+        "active_sessions": len(conversation_sessions),
+        "session_ids": list(conversation_sessions.keys())[:10],  # Show first 10 for debugging
+        "status": "success"
     })
 
 if __name__ == '__main__':
