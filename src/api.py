@@ -227,5 +227,5 @@ if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
         port=port,
-        debug=True  # Set to False in production
+        debug=False  # Set to False in production
     ) 
