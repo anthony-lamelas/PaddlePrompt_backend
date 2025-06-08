@@ -19,8 +19,11 @@ conversation_sessions = {}
 if os.environ.get('FLASK_ENV') == 'production':
     # Production: Allow your Render domains
     CORS(app, origins=[
-        "https://paddleprompt-frontend.onrender.com",  # Your actual frontend URL
-    ])
+        "https://paddleprompt.onrender.com",  # Your actual frontend URL
+    ], 
+    methods=['GET', 'POST', 'OPTIONS'],
+    allow_headers=['Content-Type', 'Authorization'],
+    supports_credentials=True)
 else:
     # Development: Allow all origins for Docker testing
     CORS(app, 
@@ -29,10 +32,15 @@ else:
          allow_headers=['Content-Type', 'Authorization'],  # Allow these headers
          supports_credentials=True)  # Support credentials if needed
 
-# Manual CORS handler for development
+# CORS handler for both development and production
 @app.after_request
 def after_request(response):
-    if os.environ.get('FLASK_ENV') != 'production':
+    if os.environ.get('FLASK_ENV') == 'production':
+        response.headers.add('Access-Control-Allow-Origin', 'https://paddleprompt.onrender.com')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+    else:
         response.headers.add('Access-Control-Allow-Origin', '*')
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
         response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
@@ -42,6 +50,11 @@ def after_request(response):
 def health_check():
     """Health check endpoint."""
     return jsonify({"status": "healthy", "message": "API is running"})
+
+@app.route('/query', methods=['OPTIONS'])
+def query_options():
+    """Handle CORS preflight request for query endpoint."""
+    return '', 200
 
 @app.route('/query', methods=['POST'])
 def query_endpoint():
