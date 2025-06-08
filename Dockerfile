@@ -21,6 +21,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code and WSGI files
 COPY src/ ./src/
+COPY api.py ./
 COPY wsgi.py ./
 COPY gunicorn.conf.py ./
 
