@@ -15,4 +15,5 @@ torchvision
 torchaudio
 fitz
 flask
-flask-cors 
+flask-cors
+gunicorn
