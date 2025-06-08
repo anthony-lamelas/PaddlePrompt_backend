@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from query import query_documents_with_history
+from src.query import query_documents_with_history
 
 # Load environment variables
 load_dotenv()
