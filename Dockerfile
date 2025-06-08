@@ -33,7 +33,7 @@ EXPOSE 10000
 
 # Set environment variables
 ENV PYTHONPATH=/app
-ENV FLASK_APP=src/api.py
+ENV FLASK_APP=api.py
 ENV FLASK_ENV=production
 
 # Health check
