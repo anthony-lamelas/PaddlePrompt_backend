@@ -44,10 +44,10 @@ def setup_qa_chain():
     # Create system prompt
     system_prompt = (
         "**You are an AI assistant that answers questions based on the provided context from documents. **"
-        "**Use the given context to answer the question accurately and comprehensively. **"
+        "**Use the given context to answer the question accurately and concisely. Do not make the responses too long, but be descriptive. **"
         "**Guidelines for answering questions: **"
-        "**1. If the context contains directly relevant information, provide a detailed answer. **"
-        "**2. If the context contains partially relevant or related information, use it to provide the best possible answer and mention what aspects you can address. **"
+        "**1. If the context contains directly relevant information, provide a clear and concise answer (2-4 sentences max). **"
+        "**2. If the context contains partially relevant or related information, use it to provide a brief answer and mention what aspects you can address. **"
         "**3. For follow-up questions or clarifications, try to connect them to the available context even if not explicitly mentioned. **"
         "**4. Consider synonyms, related concepts, and implied connections when evaluating relevance. **"
         "**5. ALWAYS answer questions related to: ASCE (American Society of Civil Engineers), civil engineering, canoeing, concrete canoe, or any related engineering/construction topics. **"
@@ -88,7 +88,9 @@ def setup_qa_chain_with_history():
     llm = ChatOpenAI(
         temperature=0, 
         api_key=SecretStr(openai_api_key),
-        model="gpt-3.5-turbo"
+        model="gpt-3.5-turbo",
+        frequency_penalty=0.3,
+        presence_penalty=0.1
     )
 
     # Create vector store and retriever
@@ -102,10 +104,10 @@ def setup_qa_chain_with_history():
     # Create system prompt with conversation history support
     system_prompt = (
         "**You are an AI assistant that answers questions based on the provided context from documents. **"
-        "**Use the given context to answer the question accurately and comprehensively. **"
+        "**Use the given context to answer the question accurately and concisely. Keep responses brief and to the point. **"
         "**Guidelines for answering questions: **"
-        "**1. If the context contains directly relevant information, provide a detailed answer. **"
-        "**2. If the context contains partially relevant or related information, use it to provide the best possible answer and mention what aspects you can address. **"
+        "**1. If the context contains directly relevant information, provide a clear and concise answer (2-4 sentences max). **"
+        "**2. If the context contains partially relevant or related information, use it to provide a brief answer and mention what aspects you can address. **"
         "**3. For follow-up questions or clarifications, try to connect them to the available context even if not explicitly mentioned. **"
         "**4. Consider synonyms, related concepts, and implied connections when evaluating relevance. **"
         "**5. Use the conversation history to understand follow-up questions, pronouns (like 'it', 'that', 'this'), and contextual references. **"
