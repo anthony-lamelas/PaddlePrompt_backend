@@ -1,5 +1,3 @@
-"""Pinecone retrieval functionality."""
-
 from pinecone import Pinecone
 from langchain_pinecone import PineconeVectorStore
 from langchain_openai import OpenAIEmbeddings, OpenAI

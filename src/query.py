@@ -164,7 +164,6 @@ def query_documents_with_history(question: str, conversation_history: list) -> s
     return response['answer']
 
 if __name__ == "__main__":
-    # Example usage
     question = "What are the main requirements for the concrete mix design?"
     answer = query_documents(question)
     print("\nQuestion:", question)

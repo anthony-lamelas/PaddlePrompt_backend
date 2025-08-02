@@ -20,10 +20,8 @@ def test_health_check():
 def test_query(question):
     """Test the query endpoint."""
     try:
-        # Prepare the JSON payload
         payload = {"question": question}
         
-        # Send POST request
         response = requests.post(
             f"{BASE_URL}/query",
             json=payload,
@@ -43,17 +41,13 @@ def main():
     print("Testing Flask API")
     print("=" * 50)
     
-    # Test health check
     test_health_check()
     
-    # Test valid queries
     test_query("What is the best basketball player in the world?")
     test_query("Tell me about the proposal content")
     
-    # Test edge cases
-    test_query("")  # Empty question
-    test_query("   ")  # Whitespace only
-    
+    test_query("")  
+    test_query("   ")  
     print("Testing complete!")
 
 if __name__ == "__main__":

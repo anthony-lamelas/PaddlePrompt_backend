@@ -7,7 +7,6 @@ from query import query_documents
 def main():
     load_dotenv()
     
-    # Example query
     question = "What is the best basketball player in the world?"
     answer = query_documents(question)
     
