@@ -16,7 +16,9 @@ class PineconeRetriever:
 
         # create the Pinecone vector store
         self.vector_store = PineconeVectorStore(index=self.index, embedding=self.embedding_model, text_key="text")
-        self.retriever = self.vector_store.as_retriever()
+        self.retriever = self.vector_store.as_retriever(
+            search_kwargs={"k": 8, "score_threshold": 0.6}
+        )
 
         # create the RetrievalQA chain
         self.qa_chain = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.retriever)

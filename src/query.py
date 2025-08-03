@@ -28,7 +28,7 @@ def setup_qa_chain():
     # Set up OpenAI components
     embedding_model = OpenAIEmbeddings(api_key=SecretStr(openai_api_key))
     llm = ChatOpenAI(
-        temperature=0, 
+        temperature=0.5, 
         api_key=SecretStr(openai_api_key),
         model="gpt-3.5-turbo"  # Faster and cheaper than GPT-4
     )
@@ -39,7 +39,9 @@ def setup_qa_chain():
         embedding=embedding_model,
         text_key="text"
     )
-    retriever = vector_store.as_retriever()
+    retriever = vector_store.as_retriever(
+        search_kwargs={"k": 8, "score_threshold": 0.6}
+    )
 
     # Create system prompt
     system_prompt = (
@@ -49,11 +51,13 @@ def setup_qa_chain():
         "**1. If the context contains directly relevant information, provide a clear and concise answer. **"
         "**2. If the context contains partially relevant or related information, use it to provide the best answer possible. **"
         "**3. For questions that might be loosely related to the documents, try to find any connection and provide helpful information. **"
-        "**4. Be liberal in interpreting relevance - consider synonyms, related concepts, and any potential connections. **"
-        "**5. Always try to answer questions if there's ANY possibility they relate to engineering, construction, materials, design, or technical topics. **"
-        "**6. If no relevant information is found in the context, try to provide a general answer if the question is related to engineering or technical topics. **"
-        "**7. ONLY respond with 'This question is not relevant. Please ask questions related to the document content.' **"
-        "**   if the question is clearly about completely unrelated topics like cooking, entertainment, sports scores, etc. **"
+        "**4. Be very liberal in interpreting relevance - consider synonyms, related concepts, and any potential connections. **"
+        "**5. Always try to answer questions if there's ANY possibility they relate to engineering, construction, materials, design, technical topics, or academic subjects. **"
+        "**6. If no relevant information is found in the context, try to provide a general answer if the question is related to engineering, technical topics, or academic subjects. **"
+        "**7. For engineering and technical questions, always attempt to provide an answer even if the context is limited. **"
+        "**8. ONLY respond with 'This question is not relevant. Please ask questions related to the document content.' **"
+        "**   if the question is clearly about completely unrelated topics like cooking recipes, entertainment gossip, sports scores, or personal relationships. **"
+        "**9. Questions about engineering, science, technology, construction, materials, design, research, or academic topics should always be answered. **"
         "**Context: {context}**"
     )
     
@@ -86,7 +90,7 @@ def setup_qa_chain_with_history():
     # Set up OpenAI components
     embedding_model = OpenAIEmbeddings(api_key=SecretStr(openai_api_key))
     llm = ChatOpenAI(
-        temperature=0, 
+        temperature=0.3, 
         api_key=SecretStr(openai_api_key),
         model="gpt-3.5-turbo",
         frequency_penalty=0.3,
@@ -99,7 +103,9 @@ def setup_qa_chain_with_history():
         embedding=embedding_model,
         text_key="text"
     )
-    retriever = vector_store.as_retriever()
+    retriever = vector_store.as_retriever(
+        search_kwargs={"k": 8, "score_threshold": 0.6}
+    )
 
     # Create system prompt with conversation history support
     system_prompt = (
@@ -109,13 +115,15 @@ def setup_qa_chain_with_history():
         "**1. If the context contains directly relevant information, provide a clear and concise answer. **"
         "**2. If the context contains partially relevant or related information, use it to provide the best answer possible. **"
         "**3. For follow-up questions or clarifications, try to connect them to the available context and conversation history. **"
-        "**4. Be liberal in interpreting relevance - consider synonyms, related concepts, and any potential connections. **"
+        "**4. Be very liberal in interpreting relevance - consider synonyms, related concepts, and any potential connections. **"
         "**5. Use the conversation history to understand follow-up questions, pronouns (like 'it', 'that', 'this'), and contextual references. **"
         "**6. If a question builds on previous discussion, interpret it in that context and provide relevant information. **"
-        "**7. Always try to answer questions if there's ANY possibility they relate to engineering, construction, materials, design, or technical topics. **"
-        "**8. If no relevant information is found in the context, try to provide a general answer if the question is related to engineering or technical topics. **"
-        "**9. ONLY respond with 'This question is not relevant. Please ask questions related to the document content.' **"
-        "**   if the question is clearly about completely unrelated topics like cooking, entertainment, sports scores, etc. **"
+        "**7. Always try to answer questions if there's ANY possibility they relate to engineering, construction, materials, design, technical topics, or academic subjects. **"
+        "**8. If no relevant information is found in the context, try to provide a general answer if the question is related to engineering, technical topics, or academic subjects. **"
+        "**9. For engineering and technical questions, always attempt to provide an answer even if the context is limited. **"
+        "**10. ONLY respond with 'This question is not relevant. Please ask questions related to the document content.' **"
+        "**    if the question is clearly about completely unrelated topics like cooking recipes, entertainment gossip, sports scores, or personal relationships. **"
+        "**11. Questions about engineering, science, technology, construction, materials, design, research, or academic topics should always be answered. **"
         "**Context: {context}**"
         "**Conversation History: {conversation_history}**"
     )
@@ -136,9 +144,9 @@ def query_documents(question: str) -> str:
     qa_chain = setup_qa_chain()
     response = qa_chain.invoke({"input": question})
 
-    # If the answer is empty, return a message saying the question is not relevant
-    if len(response['answer']) == 0:
-        return "This question is not relevant. Please ask relevant questions."
+    # If the answer is empty or very short, try to provide a more helpful response
+    if len(response['answer']) == 0 or len(response['answer'].strip()) < 10:
+        return "I don't have specific information about that in the available documents, but I can help with questions about concrete canoe projects, engineering design, construction materials, and related technical topics. Could you rephrase your question or ask about something more specific to the concrete canoe domain?"
     return response['answer']
 
 def query_documents_with_history(question: str, conversation_history: list) -> str:
@@ -158,9 +166,9 @@ def query_documents_with_history(question: str, conversation_history: list) -> s
         "conversation_history": formatted_history
     })
 
-    # If the answer is empty, return a message saying the question is not relevant
-    if len(response['answer']) == 0:
-        return "This question is not relevant. Please ask relevant questions."
+    # If the answer is empty or very short, try to provide a more helpful response
+    if len(response['answer']) == 0 or len(response['answer'].strip()) < 10:
+        return "I don't have specific information about that in the available documents, but I can help with questions about concrete canoe projects, engineering design, construction materials, and related technical topics. Could you rephrase your question or ask about something more specific to the concrete canoe domain?"
     return response['answer']
 
 if __name__ == "__main__":

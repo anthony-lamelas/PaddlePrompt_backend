@@ -26,7 +26,7 @@ class EmbeddingGenerator:
             embeddings.append(response.data[0].embedding)
         return embeddings
     
-    def process_text(self, text, chunk_size=1000):
+    def process_text(self, text, chunk_size=1500):
         if not isinstance(text, str) or len(text) == 0:
             raise ValueError("Input text must be a non-empty string")
         chunks = self.chunk_text_by_tokens(text, chunk_size)
